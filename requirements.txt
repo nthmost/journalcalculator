@@ -1,0 +1,7 @@
+configparser
+Fabric
+Flask
+gunicorn
+unicodecsv
+pytz
+pyrfc3339

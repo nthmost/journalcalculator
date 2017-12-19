@@ -1,0 +1,85 @@
+**************
+Flask-Skeleton
+**************
+
+This repo sets up a "flask skeleton" with an architecture that works very well
+for service-oriented (as opposed to end-user-oriented) routes, supporting
+multiple versions of those routes (e.g. V1, V1.5, etc).
+
+How to Use
+----------
+
+Clone this repo.  Then make a new repo for your flask project. Copy everything
+in this repo into your new flask project's repo, and commit this as your
+first commit to the new repo.  Leave "flask-skeleton" untouched (treat as a
+vanilla Flask template).
+
+Structure
+---------
+
+The intention of this Flask skeleton is to provide a structure amenable to 
+running 2+ routes that may have overlapping functionality and names in parallel.
+
+Why would you want to run routes with redundant functionality, you ask? Many 
+reasons, but here are the top two that inspired this skeleton:
+
+* Often, support for older versions of routes is required (V1, V2, and so on).
+* Sometimes, having two routes that perform the same functionality but by different methods is useful or required for testing experimental methods.
+
+In this Flask-skeleton we make use of the "blueprints" concept, centralizing the declarations of the routes within app_config.py, making it easy to turn route blueprints "on" and "off" as well as maintain a core set of "base" routes held stable as your app evolves.
+
+**<repo-root>/etc**: configparser files (.ini style). You can extend the ones there by adding more sections and variables as needed for your app.  At minimum, these must contain the following::
+
+  [flask]
+  port=<port number>
+  api_latest_version=<arbitrary string indicating latest route version you specify>
+  api_supported_versions=<arbitrary string indicating route versions you specify>
+
+**<repo-root>/static**: where images and other media referenced by your templates need to be placed in order to be accessible to your app.
+
+**<repo-root>/templates**: that place where I put that thing that time.
+
+**<repo-root>/wsgi.py**: the WSGI-compliant service-running wrapper.
+
+**<repo-root>/<service_root>/<blueprints>**: the Blueprints can be named anything you like, but in this repo for example purposes, they're standardized to being called "routes_v1" and "routes_v2".  Each Blueprint contains the following files:
+
+  * routes.py: the place where the Blueprint is defined.  More info in the "how to blueprint" section below.
+
+  * __init__.py: python packaging voodoo.
+
+**<service_root>** contains the "app" declaration essential to running Flask services, so let's unpack what role each file serves.
+
+**app_config.py**: the locus of architectural arrangement for the skeleton. Whenever you add a new route Blueprint, you need to edit this file to make the app object aware of it.
+
+**base.py**: Sets up the "base" Blueprint, providing the following routes:
+
+* /home -- renders "home.html" template
+* /about -- renders "about.html" template
+* /OK -- renders a JSON response containing some basic information about your app, for use as an app health-monitoring endpoint (e.g. for setup in Nagios).
+* /routes -- generates a page that reports on the GET and POST endpoints in your app.
+
+**config.py**: Handles config file loading and logging setup, providing the following:
+
+* PKGNAME: manually set this variable to a package "nickname" of your choosing. This propagates into logger names and the names of environment variables.
+* ENV: at runtime, configures the deployment environment to run under (default: 'dev'), affects which config file will be read. For example, the default of 'dev' compels the ConfigParser to read from dev.ini.  This variable is preferentially set from the <PKGNAME>_SERVICES_ENV environment variable.
+* DEBUG: sets log.logLevel to logging.DEBUG (if False, log.logLevel defaults to logging.ERROR). This variable is preferentially set from the <PKGNAME>_SERVICES_DEBUG env variable.
+* log (logger instance)
+* CONFIG (configparser instance); ENV variable affects which config files are read. Defaults to reading from <repo-root>/etc, but its config dir can be preferentially set by the <PKGNAME>_SERVICES_CONFIG_DIR environment variable.
+
+**utils.py**: Provides JSON and File return functions, specifically:
+
+* HTTP200(<serializable>): converts a serializable input (e.g. a dictionary or list) into a json data string and renders this as a Response object with HTTP 200 status.
+* HTTP400(<ErrorObject>, <errorMessage>): renders an error object (it's ok to supply None here) along with an arbitrary error message string to a json response with HTTP 400 status.
+* HTTP200_file(<content>, <filename>): allows a route to push a whole file to the user's browser, where content can be any valid file content and filename sets the filename of the content.
+
+
+How to Blueprint
+----------------
+
+You can read about Flask Blueprints elsewhere.  I find the best way to learn is by example.
+Here's how blueprinting works here in the flask-skeleton.
+
+# Make a directory to contain the new blueprint.  "routes_vx" is the convention I follow. You
+   can set this to anything you like.
+# next
+# next
